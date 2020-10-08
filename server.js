@@ -9,15 +9,28 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 
-app.use(morgan('dev'));
+const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'dev'
+app.use(morgan(morganSetting))
+
 app.use(function validateBearerToken(req, res, next) {
     const authToken = req.get('Authorization');
     const apiToken = process.env.API_TOKEN;
     console.log(authToken,apiToken);
-    if(!authToken || authToken.split(' ')[0] !== "Bearer" || authToken.split(' ')[1] !== apiToken {
+    if(!authToken || authToken.split(' ')[0] !== "Bearer" || authToken.split(' ')[1] !== apiToken) {
         res.status(401).json({error: 'Unauthorized request'})
     }
     next();
+})
+
+//error handler
+app.use((error, req, res, next) => {
+  let response
+  if (process.env.NODE_ENV === 'production') {
+    response = { error: { message: 'server error' }}
+  } else {
+    response = { error }
+  }
+  res.status(500).json(response)
 })
 
 function handleGetMovies(req, res) {
@@ -38,9 +51,8 @@ function handleGetMovies(req, res) {
     res.json(movies)
 
 }
+
 app.get('/movies', handleGetMovies);
 
-const PORT = 8000;
-app.listen(PORT, () => {
-    console.log(`Server listening at http://localhost:${PORT}`)
-})
+const PORT = process.env.PORT || 8000
+app.listen(PORT, () => {} )
