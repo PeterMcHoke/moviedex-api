@@ -14,10 +14,9 @@ app.use(function validateBearerToken(req, res, next) {
     const authToken = req.get('Authorization');
     const apiToken = process.env.API_TOKEN;
     console.log(authToken,apiToken);
-    if(!authToken || authToken.split(' ')[1] !== apiToken) {
+    if(!authToken || authToken.split(' ')[0] !== "Bearer" || authToken.split(' ')[1] !== apiToken {
         res.status(401).json({error: 'Unauthorized request'})
     }
-
     next();
 })
 
